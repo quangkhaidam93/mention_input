@@ -228,9 +228,12 @@ class _MentionInputState extends State<MentionInput> {
         selectionWord!.endIdx,
         "$annotation$replaceText ");
 
-    selectionWord = null;
+    _controller.selection = TextSelection.fromPosition(
+        TextPosition(offset: _controller.text.length));
 
     focusNode.requestFocus();
+
+    selectionWord = null;
   }
 
   @override
