@@ -1,6 +1,6 @@
 name: mention_input
 description: Flutter mention input widget that has several custom properties. Inspired by flutter_mentions of fayeed.
-version: 0.0.3
+version: 0.0.4
 repository: https://github.com/quangkhaidam93/mention_input
 homepage: https://github.com/quangkhaidam93/mention_input
 
