@@ -32,6 +32,7 @@ class InputSection extends StatelessWidget {
   final TextAlignVertical? textAlignVertical;
   final TextCapitalization textCapitalization;
   final TextDirection? textDirection;
+  final bool? submitByEnter;
 
   const InputSection(
       {super.key,
@@ -63,7 +64,8 @@ class InputSection extends StatelessWidget {
       this.textAlign = TextAlign.start,
       this.style,
       this.textAlignVertical,
-      this.textDirection});
+      this.textDirection,
+      this.submitByEnter = false});
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,7 @@ class InputSection extends StatelessWidget {
                 ),
                 Expanded(
                   child: TextField(
+                    onSubmitted: submitByEnter == true ? (_) => onSend : null,
                     minLines: minLines,
                     maxLines: maxLines,
                     maxLength: maxLength,

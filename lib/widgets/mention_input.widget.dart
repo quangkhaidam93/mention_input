@@ -50,6 +50,7 @@ class MentionInput extends StatefulWidget {
   TextAlignVertical? textAlignVertical;
   TextCapitalization? textCapitalization;
   TextDirection? textDirection;
+  bool? submitByEnter;
 
   // Data properties
   List<Mention> mentions;
@@ -101,7 +102,8 @@ class MentionInput extends StatefulWidget {
       this.textAlign,
       this.textAlignVertical,
       this.textCapitalization,
-      this.textDirection});
+      this.textDirection,
+      this.submitByEnter});
 
   @override
   State<MentionInput> createState() => _MentionInputState();
@@ -344,6 +346,7 @@ class _MentionInputState extends State<MentionInput> {
         textCapitalization:
             widget.textCapitalization ?? TextCapitalization.none,
         textDirection: widget.textDirection,
+        submitByEnter: widget.submitByEnter,
       ),
     );
   }

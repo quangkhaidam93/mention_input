@@ -1,4 +1,3 @@
-## 0.0.7
+## 0.0.8
 
-- add auto focus input after
-- add focusInput in controller's methods
+- Add submit by enter (trigger onSubmitted)
