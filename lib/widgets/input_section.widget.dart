@@ -118,6 +118,7 @@ class InputSection extends StatelessWidget {
                         onPressed: () {
                           onSend?.call();
                           if (clearTextAfterSent) controller.clear();
+                          focusNode.requestFocus();
                         },
                       )
                     : const SizedBox(),

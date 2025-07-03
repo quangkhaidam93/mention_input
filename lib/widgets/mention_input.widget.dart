@@ -259,6 +259,10 @@ class _MentionInputState extends State<MentionInput> {
       widget.controller!.getText = () {
         return _controller.text;
       };
+
+      widget.controller!.focusInput = () {
+        focusNode.requestFocus();
+      };
     }
 
     allTriggerAnnotations =
