@@ -1,3 +1,4 @@
-## 0.0.1
+## 0.0.7
 
-* TODO: Describe initial release.
+- add auto focus input after
+- add focusInput in controller's methods
