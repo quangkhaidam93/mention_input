@@ -88,6 +88,8 @@ class InputSection extends StatelessWidget {
                 ),
                 Expanded(
                   child: TextField(
+                    textInputAction:
+                        submitByEnter == true ? TextInputAction.done : null,
                     onSubmitted:
                         submitByEnter == true ? (_) => onSend?.call() : null,
                     minLines: minLines,
