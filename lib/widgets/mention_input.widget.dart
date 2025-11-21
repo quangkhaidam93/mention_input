@@ -21,7 +21,7 @@ class MentionInput extends StatefulWidget {
   // Properties for Suggestion Item
   double itemHeight;
   bool? dividerBetweenItems;
-  Widget Function(int index, MentionData data)? itemBuilder;
+  Widget Function(int index, MentionData data, int highlightIndex)? itemBuilder;
 
   // Properties for Text Field Container
   EdgeInsetsGeometry? textFieldContainerPadding;
@@ -51,6 +51,8 @@ class MentionInput extends StatefulWidget {
   TextCapitalization? textCapitalization;
   TextDirection? textDirection;
   bool? submitByEnter;
+  ScrollController? suggestionScrollController;
+  SuggestionSectionController? suggestionSectionController;
 
   // Data properties
   List<Mention> mentions;
@@ -103,7 +105,9 @@ class MentionInput extends StatefulWidget {
       this.textAlignVertical,
       this.textCapitalization,
       this.textDirection,
-      this.submitByEnter});
+      this.submitByEnter,
+      this.suggestionScrollController,
+      this.suggestionSectionController});
 
   @override
   State<MentionInput> createState() => _MentionInputState();
@@ -265,6 +269,48 @@ class _MentionInputState extends State<MentionInput> {
       widget.controller!.focusInput = () {
         focusNode.requestFocus();
       };
+
+      widget.controller!.insertNewLine = () {
+        final text = _controller.text;
+        final selection = _controller.selection;
+
+        // More robust check to prevent double newlines
+        // Check if cursor is at a newline or if previous character is newline
+        if (selection.start > 0 && text[selection.start - 1] == '\n') {
+          return;
+        }
+
+        // Also check if we're at the start of a line (after a newline)
+        if (selection.start < text.length && text[selection.start] == '\n') {
+          return;
+        }
+
+        // Additional check: if selection has range and contains newlines
+        if (selection.start != selection.end) {
+          final selectedText = text.substring(selection.start, selection.end);
+          if (selectedText.contains('\n')) {
+            return;
+          }
+        }
+
+        final newText =
+            '${text.substring(0, selection.start)}\n${text.substring(selection.end)}';
+
+        _controller.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: selection.start + 1),
+        );
+      };
+
+      widget.controller!.setText = (String text) {
+        final currentText = _controller.text;
+        final newText = "$currentText ${text.trim()}";
+
+        _controller.value = TextEditingValue(
+          text: newText,
+          selection: TextSelection.collapsed(offset: newText.length),
+        );
+      };
     }
 
     allTriggerAnnotations =
@@ -304,6 +350,8 @@ class _MentionInputState extends State<MentionInput> {
               : Alignment.topCenter,
           widthFactor: 1),
       portalFollower: SuggestionSection(
+        controller: widget.suggestionSectionController,
+        scrollController: widget.suggestionScrollController,
         itemHeight: widget.itemHeight,
         addMention: addMention,
         suggestionList: suggestionList,
