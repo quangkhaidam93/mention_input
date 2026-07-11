@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../controllers/mention_input_text_editing.controller.dart';
 
@@ -33,39 +34,50 @@ class InputSection extends StatelessWidget {
   final TextCapitalization textCapitalization;
   final TextDirection? textDirection;
   final bool? submitByEnter;
+  final void Function() onArrowUpPressed;
+  final void Function() onArrowDownPressed;
+  final Function() onAddMention;
+  final bool suggestionListVisible;
+  final bool autoHandleArrowKeys;
 
-  const InputSection(
-      {super.key,
-      required this.leftInputMargin,
-      required this.rightInputMargin,
-      required this.hasSendButton,
-      required this.shouldShowSendButton,
-      required this.focusNode,
-      required this.controller,
-      required this.shouldHideLeftWidgets,
-      required this.shouldHideRightWidgets,
-      this.leftWidgets,
-      this.rightWidgets,
-      this.onSend,
-      this.clearTextAfterSent = true,
-      this.placeHolder,
-      this.autoFocus,
-      this.padding,
-      this.color,
-      this.borderRadius,
-      this.decoration,
-      this.sendIcon,
-      this.cursorColor,
-      this.maxLength,
-      this.minLines,
-      this.maxLines,
-      this.keyboardType,
-      this.textCapitalization = TextCapitalization.none,
-      this.textAlign = TextAlign.start,
-      this.style,
-      this.textAlignVertical,
-      this.textDirection,
-      this.submitByEnter = false});
+  const InputSection({
+    super.key,
+    required this.leftInputMargin,
+    required this.rightInputMargin,
+    required this.hasSendButton,
+    required this.shouldShowSendButton,
+    required this.focusNode,
+    required this.controller,
+    required this.shouldHideLeftWidgets,
+    required this.shouldHideRightWidgets,
+    required this.onArrowUpPressed,
+    required this.onArrowDownPressed,
+    required this.onAddMention,
+    required this.suggestionListVisible,
+    required this.autoHandleArrowKeys,
+    this.leftWidgets,
+    this.rightWidgets,
+    this.onSend,
+    this.clearTextAfterSent = true,
+    this.placeHolder,
+    this.autoFocus,
+    this.padding,
+    this.color,
+    this.borderRadius,
+    this.decoration,
+    this.sendIcon,
+    this.cursorColor,
+    this.maxLength,
+    this.minLines,
+    this.maxLines,
+    this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
+    this.textAlign = TextAlign.start,
+    this.style,
+    this.textAlignVertical,
+    this.textDirection,
+    this.submitByEnter = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -87,24 +99,59 @@ class InputSection extends StatelessWidget {
                   width: leftWidgets != null ? leftInputMargin : 0,
                 ),
                 Expanded(
-                  child: TextField(
-                    textInputAction: TextInputAction.send,
-                    minLines: minLines,
-                    maxLines: maxLines,
-                    maxLength: maxLength,
-                    keyboardType: keyboardType,
-                    style: style,
-                    textAlign: textAlign,
-                    textAlignVertical: textAlignVertical,
-                    textCapitalization: textCapitalization,
-                    textDirection: textDirection,
-                    cursorColor: cursorColor,
-                    controller: controller,
-                    focusNode: focusNode,
-                    autofocus: autoFocus ?? false,
-                    decoration: InputDecoration(
-                        hintText: placeHolder ?? "Aa",
-                        border: InputBorder.none),
+                  child: Focus(
+                    onKeyEvent: (node, event) {
+                      if (!autoHandleArrowKeys) {
+                        return KeyEventResult.ignored;
+                      }
+
+                      // Only act on key down events to avoid duplicate (down + up) prints
+                      if (event is! KeyDownEvent) {
+                        return KeyEventResult.ignored;
+                      }
+                      // Prevent the default behavior of the Enter key
+                      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+                        onArrowUpPressed();
+
+                        return KeyEventResult.handled;
+                      }
+
+                      if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+                        onArrowDownPressed();
+
+                        return KeyEventResult.handled;
+                      }
+
+                      if (event.logicalKey == LogicalKeyboardKey.enter) {
+                        if (suggestionListVisible) {
+                          onAddMention();
+                          return KeyEventResult.handled;
+                        }
+
+                        return KeyEventResult.ignored;
+                      }
+
+                      return KeyEventResult.ignored;
+                    },
+                    child: TextField(
+                      textInputAction: TextInputAction.send,
+                      minLines: minLines,
+                      maxLines: maxLines,
+                      maxLength: maxLength,
+                      keyboardType: keyboardType,
+                      style: style,
+                      textAlign: textAlign,
+                      textAlignVertical: textAlignVertical,
+                      textCapitalization: textCapitalization,
+                      textDirection: textDirection,
+                      cursorColor: cursorColor,
+                      controller: controller,
+                      focusNode: focusNode,
+                      autofocus: autoFocus ?? false,
+                      decoration: InputDecoration(
+                          hintText: placeHolder ?? "Aa",
+                          border: InputBorder.none),
+                    ),
                   ),
                 ),
                 SizedBox(

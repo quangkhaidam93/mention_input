@@ -52,7 +52,7 @@ class MentionInput extends StatefulWidget {
   TextDirection? textDirection;
   bool? submitByEnter;
   ScrollController? suggestionScrollController;
-  SuggestionSectionController? suggestionSectionController;
+  bool autoHandleArrowKeys;
 
   // Data properties
   List<Mention> mentions;
@@ -107,7 +107,7 @@ class MentionInput extends StatefulWidget {
       this.textDirection,
       this.submitByEnter,
       this.suggestionScrollController,
-      this.suggestionSectionController});
+      this.autoHandleArrowKeys = false});
 
   @override
   State<MentionInput> createState() => _MentionInputState();
@@ -122,6 +122,7 @@ class _MentionInputState extends State<MentionInput> {
   AllMentionWords allMentionWords = {};
   late String allTriggerAnnotations;
   bool shouldShowSendButton = false;
+  int currentMentionIndex = 0;
 
   void updateAllMentionWords() {
     for (var mention in widget.mentions) {
@@ -205,8 +206,16 @@ class _MentionInputState extends State<MentionInput> {
             .firstWhere(
                 (mention) => mention.triggerAnnotation == currentAnnotation)
             .data
-            .where((mention) => mention.display.contains(word))
+            .where((mentionData) {
+              final query = _normalizeString(word);
+              if (query.isEmpty) return true;
+
+              final display = _normalizeString(mentionData.display);
+              return display.contains(query);
+            })
             .toList();
+
+        currentMentionIndex = 0;
 
         if (suggestionList.isNotEmpty) {
           selectionWord = SelectionWord(
@@ -245,6 +254,41 @@ class _MentionInputState extends State<MentionInput> {
     focusNode.requestFocus();
 
     selectionWord = null;
+  }
+
+  void onArrowDownKeyPressed() {
+    if (currentMentionIndex < suggestionList.length - 1) {
+      widget.suggestionScrollController!.animateTo(
+          widget.suggestionScrollController!.offset + widget.itemHeight,
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut);
+
+      setState(() {
+        currentMentionIndex = currentMentionIndex + 1;
+      });
+    } else {
+      widget.suggestionScrollController!.animateTo(0,
+          duration: const Duration(milliseconds: 100), curve: Curves.easeInOut);
+
+      setState(() {
+        currentMentionIndex = 0;
+      });
+    }
+  }
+
+  void onArrowUpKeyPressed() {
+    if (currentMentionIndex == 0) {
+      return;
+    }
+
+    widget.suggestionScrollController!.animateTo(
+        widget.suggestionScrollController!.offset - widget.itemHeight,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeInOut);
+
+    setState(() {
+      currentMentionIndex = currentMentionIndex - 1;
+    });
   }
 
   @override
@@ -350,8 +394,8 @@ class _MentionInputState extends State<MentionInput> {
               : Alignment.topCenter,
           widthFactor: 1),
       portalFollower: SuggestionSection(
-        controller: widget.suggestionSectionController,
         scrollController: widget.suggestionScrollController,
+        currentMentionIndex: currentMentionIndex,
         itemHeight: widget.itemHeight,
         addMention: addMention,
         suggestionList: suggestionList,
@@ -365,6 +409,13 @@ class _MentionInputState extends State<MentionInput> {
       ),
       child: InputSection(
         controller: _controller,
+        onArrowDownPressed: onArrowDownKeyPressed,
+        onArrowUpPressed: onArrowUpKeyPressed,
+        onAddMention: () {
+          addMention(suggestionList[currentMentionIndex].display);
+        },
+        autoHandleArrowKeys: widget.autoHandleArrowKeys,
+        suggestionListVisible: isSuggestionsVisible,
         focusNode: focusNode,
         hasSendButton: widget.hasSendButton,
         shouldShowSendButton: shouldShowSendButton,
@@ -398,4 +449,28 @@ class _MentionInputState extends State<MentionInput> {
       ),
     );
   }
+}
+
+String _normalizeString(String text) {
+  String str = text.toLowerCase();
+
+  const vietnameseMap = {
+    'a': 'áàạảãâấầậẩẫăằắặẳẵ',
+    'e': 'éèẹẻẽêềếệểễ',
+    'i': 'íìịỉĩ',
+    'o': 'óòọỏõôồốộổỗơờớợởỡ',
+    'u': 'úùụủũưừứựửữ',
+    'y': 'ýỳỵỷỹ',
+    'd': 'đ',
+  };
+
+  vietnameseMap.forEach((nonAccented, accentedGroup) {
+    for (int i = 0; i < accentedGroup.length; i++) {
+      str = str.replaceAll(accentedGroup[i], nonAccented);
+    }
+  });
+
+  str = str.replaceAll(RegExp(r'[^a-z0-9]'), '');
+
+  return str;
 }
