@@ -1,21 +1,20 @@
 library mention_input;
 
-import 'dart:math';
+// Core
+export 'src/core/mention_manager.dart';
+export 'src/core/mention_matcher.dart';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_portal/flutter_portal.dart';
-import 'package:mention_input/controllers/mention_input.controller.dart';
-import 'package:mention_input/models/mention.model.dart';
-import 'package:mention_input/models/mention_data.model.dart';
-import 'package:mention_input/models/selection_word.model.dart';
-import 'package:mention_input/types/types.dart';
-import 'package:mention_input/controllers/mention_input_text_editing.controller.dart';
-import 'models/mention_word.model.dart';
-import 'widgets/input_section.widget.dart';
-import 'widgets/suggestion_section.widget.dart';
+// Controllers
+export 'src/controllers/mention_input.controller.dart';
+export 'src/controllers/mention_input_text_editing.controller.dart';
 
-export 'package:flutter_portal/flutter_portal.dart';
-export 'package:mention_input/models/mention_data.model.dart';
-export 'package:mention_input/models/mention.model.dart';
+// Models
+export 'src/models/mention.model.dart';
+export 'src/models/mention_data.model.dart';
+export 'src/models/mention_word.model.dart';
 
-part "widgets/mention_input.widget.dart";
+// Types
+export 'src/types/types.dart';
+
+// Widgets
+export 'src/widgets/mention_input.widget.dart';

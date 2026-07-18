@@ -2,18 +2,52 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mention_input/mention_input.dart';
 
+class ExactPrefixMatcher implements MentionMatcher {
+  @override
+  String? match(String query, MentionData data, List<String> searchKeys) {
+    if (query.isEmpty) {
+      if (searchKeys.isNotEmpty) {
+        if (searchKeys.first == 'display') return data.display;
+        if (data.customData?.containsKey(searchKeys.first) == true) {
+          return data.customData![searchKeys.first]?.toString();
+        }
+      }
+      return data.display;
+    }
+    
+    final lowerQuery = query.toLowerCase();
+    for (final key in searchKeys) {
+      String? value;
+      if (key == 'display') {
+        value = data.display;
+      } else if (data.customData != null && data.customData!.containsKey(key)) {
+        value = data.customData![key]?.toString();
+      }
+      if (value != null && value.toLowerCase().startsWith(lowerQuery)) {
+        return value;
+      }
+    }
+    return null;
+  }
+}
+
 void main() {
   Widget buildTestWidget({
     required List<Mention> mentions,
-    Function(String)? onChanged,
   }) {
     return MaterialApp(
-      home: Portal(
-        child: Scaffold(
-          body: MentionInput(
-            mentions: mentions,
-            onChanged: onChanged,
-          ),
+      home: Scaffold(
+        body: MentionInput(
+          mentions: mentions,
+          builder: (context, controller, manager, state) {
+            return Column(
+              children: [
+                if (state.isSuggestionVisible)
+                  ...state.suggestions.map((s) => Text(s.display)),
+                TextField(controller: controller),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -86,6 +120,7 @@ void main() {
     final mentions = [
       Mention(
         triggerAnnotation: '@',
+        matcher: ExactPrefixMatcher(),
         data: [
           MentionData(
             id: 'johndoe123',
